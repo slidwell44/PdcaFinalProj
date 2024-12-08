@@ -11,15 +11,13 @@ class Base(DeclarativeBase):
     pass
 
 class Game(Base):
-    """Stores game id and relevant game information"""
     __tablename__ = 'games'
-    
+
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()), unique=True, nullable=False)
-    
     createdat = Column(DateTime, default=datetime.now(UTC), nullable=False)
     winner = Column(Enum('X', 'O', 'Tie', name='game_winner'), nullable=True)
     game_type = Column(Enum('TicTacToe', 'Connect4', name='game_type'), nullable=False)
-    
+
     moves = relationship('Move', back_populates='game', cascade='all, delete-orphan')
 
     def __repr__(self):
@@ -27,16 +25,15 @@ class Game(Base):
 
 
 class Move(Base):
-    """Stores move id and relevant move information"""
     __tablename__ = 'moves'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()), unique=True, nullable=False)
-    
     game_id = Column(String(36), ForeignKey('games.id'), nullable=False)
     player = Column(Enum('X', 'O', name='player_move'), nullable=False)
-    position = Column(Integer, nullable=False)
+    row = Column(Integer, nullable=False)
+    col = Column(Integer, nullable=False)
     timestamp = Column(DateTime, default=datetime.now(UTC), nullable=False)
-    
+
     game = relationship('Game', back_populates='moves')
     
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=True)

@@ -5,11 +5,12 @@ from uuid import UUID
 
 from .create_game import GameType
 from ..move.read_move import MoveRead
+from .update_game_winner import WinnerEnum
 
 class GameRead(BaseModel):
     id: UUID
     createdat: datetime
-    winner: Optional[str] = None
+    winner: Optional[WinnerEnum]
     game_type: GameType
     moves: List['MoveRead'] = []
 

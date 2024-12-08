@@ -45,7 +45,7 @@ There are two ways you can get this project up and running:
 
 2. **Using the `pip` package manager**
 
-   If you prefer to use `pip`, follow these steps:
+   If you prefer to use `pip`, follow these steps (I used Python 3.13):
 
     ```bash
     python -m venv .venv

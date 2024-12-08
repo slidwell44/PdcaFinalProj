@@ -1,12 +1,14 @@
-from pydantic import BaseModel
 from datetime import datetime
 from uuid import UUID
+
+from pydantic import BaseModel
 
 class MoveRead(BaseModel):
     id: UUID
     game_id: UUID
     player: str
-    position: int
+    row: int
+    col: int
     timestamp: datetime
 
     class Config:

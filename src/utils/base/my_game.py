@@ -15,7 +15,7 @@ class MyGame(ABC):
         self._games_url = f"{self._url}/games"
         self.game_type = game_type
         self.game_over = False
-        self.player_turn: Optional[str] = None
+        self.player_turn: str = 'X'
 
         self.current_game: GameRead = self.get_or_create_game()
         self._moves_url = f"{self._games_url}/{self.current_game.id}/moves"

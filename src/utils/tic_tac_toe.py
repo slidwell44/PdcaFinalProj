@@ -1,5 +1,8 @@
+import copy
+from datetime import datetime, UTC
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
+from uuid import uuid4
 
 import httpx
 
@@ -25,6 +28,9 @@ class TicTacToe(MyGame):
     def __init__(self):
         super().__init__(game_type=GameType.TIC_TAC_TOE.value)
 
+        self.ai_player = 'O'
+        self.human_player = 'X'
+
     def print_board(self):
         game_board = self.get_board()
 
@@ -47,6 +53,12 @@ class TicTacToe(MyGame):
         return game_board
 
     def make_move(self, player: str, row: int, col: int) -> str:
+        if self.game_over:
+            return "The game is already over"
+        
+        if player != self.player_turn:
+            return f"It's not player {player}'s turn"
+        
         try:
             attempted_move = MoveCreate(
                 player=player,
@@ -64,7 +76,12 @@ class TicTacToe(MyGame):
                 self.print_board()
                 
                 if not result:
-                    return self.return_player_turn_string(player)
+                    if self.player_turn == self.human_player:
+                        self.player_turn = self.ai_player
+                        return self.ai_move()
+                    if self.player_turn == self.ai_player:
+                        self.player_turn = self.human_player
+                        return "Player X make your move"
 
                 if result == 'X':
                     self.update_game_winner(WinnerEnum.X)
@@ -93,7 +110,7 @@ class TicTacToe(MyGame):
             raise RuntimeError(f"An unexpected error occurred: {e}") from e
 
     def _is_legal_move(self, attempted_move: MoveCreate) -> bool:
-        if attempted_move.player == self.player_turn:
+        if attempted_move.player != self.player_turn:
             self.print_player_turn(attempted_move.player)
             return False
         
@@ -125,32 +142,115 @@ class TicTacToe(MyGame):
     def _check_win_conditions(game_board: GameBoard) -> Optional[str]:
         lines = []
     
-        # Rows
         for row in game_board.board.values():
             lines.append(row)
     
-        # Columns
         for col in range(3):
             column = [game_board.board[row][col] for row in range(3)]
             lines.append(column)
     
-        # Diagonals
         primary_diag = [game_board.board[i][i] for i in range(3)]
         secondary_diag = [game_board.board[i][2 - i] for i in range(3)]
         lines.append(primary_diag)
         lines.append(secondary_diag)
     
-        # Check for win
         for line in lines:
             if all(cell is not None and cell.player == 'X' for cell in line):
                 return 'X'
             if all(cell is not None and cell.player == 'O' for cell in line):
                 return 'O'
     
-        # Check for tie
         if all(cell is not None for row in game_board.board.values() for cell in row):
             return 'Tie'
     
-        # Game is still ongoing
         return None
+
+    def ai_move(self):
+        """
+        Determines and makes the best move for the AI using the Minimax algorithm.
+        """
+        game_board = self.get_board()
+        best_score = float('-inf')
+        best_move: Optional[Tuple[int, int]] = None
+    
+        for row in range(3):
+            for col in range(3):
+                if game_board.board[row][col] is None:
+                    # Simulate AI move
+                    game_board.board[row][col] = MoveRead(
+                        id=str(uuid4()),
+                        game_id=str(uuid4()),
+                        player=self.ai_player,
+                        row=row,
+                        col=col,
+                        timestamp=datetime.now(UTC)
+                    )
+                    score = self.minimax(game_board.board, 0, False)
+                    # Undo move
+                    game_board.board[row][col] = None
+                    if score > best_score:
+                        best_score = score
+                        best_move = (row, col)
+    
+        if best_move:
+            row, col = best_move
+            print(f"AI chooses to place at ({row}, {col})")
+            return self.make_move(player=self.ai_player, row=row, col=col)
+        else:
+            return "No possible moves for AI."
+
+    def minimax(self, board: Dict[int, List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
+        """
+        The Minimax algorithm implementation.
+        """
+        # Create a temporary GameBoard to evaluate the current board
+        temp_game_board = GameBoard()
+        temp_game_board.board = copy.deepcopy(board)
+        result = self._check_win_conditions(temp_game_board)
+    
+        if result == self.human_player:
+            return -1
+        elif result == self.ai_player:
+            return 1
+        elif result == 'Tie':
+            return 0
+    
+        if is_maximizing:
+            best_score = float('-inf')
+            for row in range(3):
+                for col in range(3):
+                    if board[row][col] is None:
+                        # Simulate AI move
+                        board[row][col] = MoveRead(
+                            id=str(uuid4()),
+                            game_id=str(uuid4()),
+                            player=self.ai_player,
+                            row=row,
+                            col=col,
+                            timestamp=datetime.now(UTC)
+                        )
+                        score = self.minimax(board, depth + 1, False)
+                        # Undo move
+                        board[row][col] = None
+                        best_score = max(score, best_score)
+            return best_score
+        else:
+            best_score = float('inf')
+            for row in range(3):
+                for col in range(3):
+                    if board[row][col] is None:
+                        # Simulate Human move
+                        board[row][col] = MoveRead(
+                            id=str(uuid4()),
+                            game_id=str(uuid4()),
+                            player=self.human_player,  # Corrected to human player
+                            row=row,
+                            col=col,
+                            timestamp=datetime.now(UTC)
+                        )
+                        score = self.minimax(board, depth + 1, True)
+                        # Undo move
+                        board[row][col] = None
+                        best_score = min(score, best_score)
+            return best_score
 

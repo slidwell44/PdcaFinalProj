@@ -54,20 +54,35 @@ There are two ways you can get this project up and running:
     pip install -r requirements.txt
     python -m src.main
     ```
-After getting the backend spun up, you should be able to walk through [game_optimization_project.ipynb](game_optimization_project.ipynb).
 
+After getting the backend spun up, you should be able to walk
+through [game_optimization_project.ipynb](game_optimization_project.ipynb).
 
 ## Game Optimization Theory
 
-This section discusses the theories behind game optimization.
+### What is Minimax?
+The Minimax algorithm is a decision-making algorithm commonly used in two-player, turn-based games like Tic Tac Toe,
+Chess, and Checkers. It simulates all possible moves in the game, evaluates the potential outcomes, and chooses the move
+that maximizes the AI's chances of winning while minimizing the opponent's chances.
+
+### How it works
+* The algorithm recursively explores all possible game states resulting from each move.
+* It alternates between maximizing and minimizing at each level of recursion.
+
+### Advantages of Minimax
+* **Optimal Play:** Ensures the AI plays optimally, never losing if a win or tie is possible.
+* **Simplicity:** Straightforward to implement for simple games like Tic Tac Toe.
 
 ## Project Deliverables
 
-Here are the deliverables for the project.
+**Gameplay**
 
 ## Limitations
 
-This section outlines the limitations of the project.
+* **Computationally Intensive:** Not suitable for games with large state spaces without optimizations like Alpha-Beta
+  pruning.
+* **Assumes Optimal Opponent:** The AI assumes the opponent plays optimally, which may not always be the case in
+  real-world scenarios.
 
 ## Future Work
 

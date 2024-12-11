@@ -58,10 +58,6 @@ class MyGame(ABC):
     def print_board(self):
         ...
 
-    @abstractmethod
-    def make_move(self, player: str, row: int, col: int):
-        ...
-
     def get_moves(self) -> list[MoveRead]:
         try:
             response = httpx.get(self._moves_url)

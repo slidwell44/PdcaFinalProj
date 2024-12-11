@@ -1,7 +1,7 @@
 import copy
 from datetime import datetime, UTC
 import json
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from uuid import uuid4
 
 import httpx
@@ -14,11 +14,11 @@ from ..views.move.position import Position
 
 class GameBoard:
     def __init__(self):
-        self.board: Dict[int, List[Optional[MoveRead]]] = {
-            0: [None, None, None],
-            1: [None, None, None],
-            2: [None, None, None],
-        }
+        self.board: List[List[Optional[MoveRead]]] = [
+            [None, None, None],
+            [None, None, None],
+            [None, None, None],
+        ]
 
         
 class IllegalMove(Exception): ...
@@ -35,9 +35,9 @@ class TicTacToe(MyGame):
         game_board = self.get_board()
 
         row_count = len(game_board.board)
-        for i, (k, v) in enumerate(game_board.board.items()):
+        for i, v in enumerate(game_board.board):
             formatted_row = [val.player if isinstance(val, MoveRead) else str(idx) for idx, val in enumerate(v)]
-            print(f"{k}  " + " | ".join(formatted_row) + " ")
+            print(f"{i}  " + " | ".join(formatted_row) + " ")
             if i < row_count - 1:
                 print("   --------- ")
 
@@ -142,7 +142,7 @@ class TicTacToe(MyGame):
     def _check_win_conditions(game_board: GameBoard) -> Optional[str]:
         lines = []
     
-        for row in game_board.board.values():
+        for row in game_board.board:
             lines.append(row)
     
         for col in range(3):
@@ -160,7 +160,7 @@ class TicTacToe(MyGame):
             if all(cell is not None and cell.player == 'O' for cell in line):
                 return 'O'
     
-        if all(cell is not None for row in game_board.board.values() for cell in row):
+        if all(cell is not None for row in game_board.board for cell in row):
             return 'Tie'
     
         return None
@@ -173,6 +173,7 @@ class TicTacToe(MyGame):
         for row in range(3):
             for col in range(3):
                 if game_board.board[row][col] is None:
+                    # noinspection PyTypeChecker
                     game_board.board[row][col] = MoveRead(
                         id=str(uuid4()),
                         game_id=str(uuid4()),
@@ -195,7 +196,9 @@ class TicTacToe(MyGame):
         else:
             return "No possible moves for AI."
 
-    def minimax(self, board: Dict[int, List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
+    def minimax(self, board: List[List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
+        print(f"Depth: {depth}, is_maximizing: {is_maximizing}")
+
         temp_game_board = GameBoard()
         temp_game_board.board = copy.deepcopy(board)
         result = self._check_win_conditions(temp_game_board)
@@ -213,6 +216,7 @@ class TicTacToe(MyGame):
                 for col in range(3):
                     if board[row][col] is None:
                         # Simulate AI move
+                        # noinspection PyTypeChecker
                         board[row][col] = MoveRead(
                             id=str(uuid4()),
                             game_id=str(uuid4()),
@@ -231,6 +235,7 @@ class TicTacToe(MyGame):
                 for col in range(3):
                     if board[row][col] is None:
                         # Simulate Human move
+                        # noinspection PyTypeChecker
                         board[row][col] = MoveRead(
                             id=str(uuid4()),
                             game_id=str(uuid4()),

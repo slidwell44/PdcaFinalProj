@@ -187,6 +187,67 @@ def create_game(game_type: str, db: Session = Depends(get_db)):
     return db_game
 ```
 
+### Implementing Minimax
+
+* Initial call from `def ai_move(self):` (I call it an ai move because it sounds a lot cooler)
+
+```python
+score = self.minimax(game_board.board, 0, False)
+```
+
+The minimax function will enter the `minimizing` branch first, which simulates the human's optimal response.
+
+```python
+    def minimax(self, board: Dict[int, List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
+    temp_game_board = GameBoard()
+    temp_game_board.board = copy.deepcopy(board)
+    result = self._check_win_conditions(temp_game_board)
+
+    if result == self.human_player:
+        return -1
+    elif result == self.ai_player:
+        return 1
+    elif result == 'Tie':
+        return 0
+
+    if is_maximizing:
+        best_score = float('-inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] is None:
+                    # Simulate AI move
+                    board[row][col] = MoveRead(
+                        id=str(uuid4()),
+                        game_id=str(uuid4()),
+                        player=self.ai_player,
+                        row=row,
+                        col=col,
+                        timestamp=datetime.now(UTC)
+                    )
+                    score = self.minimax(board, depth + 1, False)
+                    board[row][col] = None
+                    best_score = max(score, best_score)
+        return best_score
+    else:
+        best_score = float('inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] is None:
+                    # Simulate Human move
+                    board[row][col] = MoveRead(
+                        id=str(uuid4()),
+                        game_id=str(uuid4()),
+                        player=self.human_player,
+                        row=row,
+                        col=col,
+                        timestamp=datetime.now(UTC)
+                    )
+                    score = self.minimax(board, depth + 1, True)
+                    board[row][col] = None
+                    best_score = min(score, best_score)
+        return best_score
+```
+
 ## Limitations
 
 * **Computationally Intensive:** Not suitable for games with large state spaces without optimizations like Alpha-Beta

@@ -197,55 +197,57 @@ score = self.minimax(game_board.board, 0, False)
 
 The minimax function will enter the `minimizing` branch first, which simulates the human's optimal response.
 
+So because `is_maximizing` is set to `False` to start, it actually jumps down into the `else:` block first...
+
 ```python
     def minimax(self, board: Dict[int, List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
-    temp_game_board = GameBoard()
-    temp_game_board.board = copy.deepcopy(board)
-    result = self._check_win_conditions(temp_game_board)
+        if is_maximizing:
+            best_score = float('-inf')
+            for row in range(3):
+                for col in range(3):
+                    if board[row][col] is None:
+                        # Simulate AI move
+                        board[row][col] = MoveRead(
+                            id=str(uuid4()),
+                            game_id=str(uuid4()),
+                            player=self.ai_player,
+                            row=row,
+                            col=col,
+                            timestamp=datetime.now(UTC)
+                        )
+                        score = self.minimax(board, depth + 1, False)
+                        board[row][col] = None
+                        best_score = max(score, best_score)
+            return best_score
+```
 
-    if result == self.human_player:
-        return -1
-    elif result == self.ai_player:
-        return 1
-    elif result == 'Tie':
-        return 0
+From here, the `is_maximizing` bool toggles between `True` and `False` as the algorithm recurses deeper into the game tree.
+* If `is_maximizing=True`
+  * The AI's turn is simulated
+  * The algorithm tries to maximize score
+* If `is_maximizing=False`
+  * The human player's turn is simulated
+  * The algorithm tries to minimize the score
 
-    if is_maximizing:
-        best_score = float('-inf')
-        for row in range(3):
-            for col in range(3):
-                if board[row][col] is None:
-                    # Simulate AI move
-                    board[row][col] = MoveRead(
-                        id=str(uuid4()),
-                        game_id=str(uuid4()),
-                        player=self.ai_player,
-                        row=row,
-                        col=col,
-                        timestamp=datetime.now(UTC)
-                    )
-                    score = self.minimax(board, depth + 1, False)
-                    board[row][col] = None
-                    best_score = max(score, best_score)
-        return best_score
-    else:
-        best_score = float('inf')
-        for row in range(3):
-            for col in range(3):
-                if board[row][col] is None:
-                    # Simulate Human move
-                    board[row][col] = MoveRead(
-                        id=str(uuid4()),
-                        game_id=str(uuid4()),
-                        player=self.human_player,
-                        row=row,
-                        col=col,
-                        timestamp=datetime.now(UTC)
-                    )
-                    score = self.minimax(board, depth + 1, True)
-                    board[row][col] = None
-                    best_score = min(score, best_score)
-        return best_score
+```python
+        else:
+            best_score = float('inf')
+            for row in range(3):
+                for col in range(3):
+                    if board[row][col] is None:
+                        # Simulate Human move
+                        board[row][col] = MoveRead(
+                            id=str(uuid4()),
+                            game_id=str(uuid4()),
+                            player=self.human_player,
+                            row=row,
+                            col=col,
+                            timestamp=datetime.now(UTC)
+                        )
+                        score = self.minimax(board, depth + 1, True)
+                        board[row][col] = None
+                        best_score = min(score, best_score)
+            return best_score
 ```
 
 ## Limitations

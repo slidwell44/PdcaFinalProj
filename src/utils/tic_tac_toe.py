@@ -166,9 +166,6 @@ class TicTacToe(MyGame):
         return None
 
     def ai_move(self):
-        """
-        Determines and makes the best move for the AI using the Minimax algorithm.
-        """
         game_board = self.get_board()
         best_score = float('-inf')
         best_move: Optional[Tuple[int, int]] = None
@@ -176,7 +173,6 @@ class TicTacToe(MyGame):
         for row in range(3):
             for col in range(3):
                 if game_board.board[row][col] is None:
-                    # Simulate AI move
                     game_board.board[row][col] = MoveRead(
                         id=str(uuid4()),
                         game_id=str(uuid4()),
@@ -200,10 +196,6 @@ class TicTacToe(MyGame):
             return "No possible moves for AI."
 
     def minimax(self, board: Dict[int, List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
-        """
-        The Minimax algorithm implementation.
-        """
-        # Create a temporary GameBoard to evaluate the current board
         temp_game_board = GameBoard()
         temp_game_board.board = copy.deepcopy(board)
         result = self._check_win_conditions(temp_game_board)
@@ -230,7 +222,6 @@ class TicTacToe(MyGame):
                             timestamp=datetime.now(UTC)
                         )
                         score = self.minimax(board, depth + 1, False)
-                        # Undo move
                         board[row][col] = None
                         best_score = max(score, best_score)
             return best_score
@@ -243,13 +234,12 @@ class TicTacToe(MyGame):
                         board[row][col] = MoveRead(
                             id=str(uuid4()),
                             game_id=str(uuid4()),
-                            player=self.human_player,  # Corrected to human player
+                            player=self.human_player,
                             row=row,
                             col=col,
                             timestamp=datetime.now(UTC)
                         )
                         score = self.minimax(board, depth + 1, True)
-                        # Undo move
                         board[row][col] = None
                         best_score = min(score, best_score)
             return best_score

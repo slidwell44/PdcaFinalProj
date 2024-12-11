@@ -4,6 +4,8 @@ Authored By: Simon Lidwell
 
 --------------
 
+[Youtube Video Shareable Link](https://youtu.be/8TFrXowIfxo)
+
 *Table of Contents*
 
 * [Introduction](#introduction)
@@ -54,6 +56,8 @@ There are two ways you can get this project up and running:
     #   pipx install uv
     #   uv install
     uv run python -m src.main
+   # or
+   # uv run -m src.main
     ```
 
 I've run into issues in industry where sharing python environments between people is incredibly difficult when just

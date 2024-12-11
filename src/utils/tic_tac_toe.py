@@ -196,6 +196,8 @@ class TicTacToe(MyGame):
             return "No possible moves for AI."
 
     def minimax(self, board: Dict[int, List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
+        print(f"Depth: {depth}, is_maximizing: {is_maximizing}")
+
         temp_game_board = GameBoard()
         temp_game_board.board = copy.deepcopy(board)
         result = self._check_win_conditions(temp_game_board)

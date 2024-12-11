@@ -1,6 +1,6 @@
 import copy
 from datetime import datetime, UTC
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from uuid import uuid4
 
 import httpx
@@ -12,7 +12,6 @@ from ..views.game.update_game_winner import WinnerEnum
 from ..views.move.position import Position
 
 
-
 class GameBoard:
     def __init__(self):
         self.rows = 6
@@ -21,12 +20,12 @@ class GameBoard:
             [None for _ in range(self.cols)] for _ in range(self.rows)
         ]
 
-class IllegalMove(Exception): ...
+class IllegalMove(Exception):
+    ...
 
 class ConnectFour(MyGame):
     def __init__(self):
         super().__init__(game_type=GameType.CONNECT4.value)
-
         self.ai_player = 'O'
         self.human_player = 'X'
 
@@ -169,11 +168,11 @@ class ConnectFour(MyGame):
         best_score = float('-inf')
         best_col: Optional[int] = None
 
+        # Introduce alpha-beta parameters into the initial call if desired
         for col in range(game_board.cols):
             row = self._find_lowest_empty_row(game_board, col)
             if row is not None:
                 # Simulate AI move
-                # noinspection PyTypeChecker
                 game_board.board[row][col] = MoveRead(
                     id=str(uuid4()),
                     game_id=str(uuid4()),
@@ -182,7 +181,7 @@ class ConnectFour(MyGame):
                     col=col,
                     timestamp=datetime.now(UTC)
                 )
-                score = self.minimax(game_board.board, 0, False)
+                score = self.minimax(game_board.board, 0, False, alpha=float('-inf'), beta=float('inf'))
                 # Undo move
                 game_board.board[row][col] = None
                 if score > best_score:
@@ -195,7 +194,10 @@ class ConnectFour(MyGame):
         else:
             return "No possible moves for AI."
 
-    def minimax(self, board: List[List[Optional[MoveRead]]], depth: int, is_maximizing: bool) -> int:
+    def minimax(self, board: List[List[Optional[MoveRead]]], depth: int, is_maximizing: bool,
+                alpha: float = float('-inf'), beta: float = float('inf')) -> int:
+        print(f"Depth: {depth}, is_maximizing: {is_maximizing}")
+        
         temp_game_board = GameBoard()
         temp_game_board.board = copy.deepcopy(board)
         result = self._check_win_conditions(temp_game_board)
@@ -212,7 +214,6 @@ class ConnectFour(MyGame):
             for col in range(temp_game_board.cols):
                 row = self._find_lowest_empty_row(temp_game_board, col)
                 if row is not None:
-                    # noinspection PyTypeChecker
                     board[row][col] = MoveRead(
                         id=str(uuid4()),
                         game_id=str(uuid4()),
@@ -221,16 +222,21 @@ class ConnectFour(MyGame):
                         col=col,
                         timestamp=datetime.now(UTC)
                     )
-                    score = self.minimax(board, depth + 1, False)
+                    score = self.minimax(board, depth + 1, False, alpha, beta)
                     board[row][col] = None
                     best_score = max(score, best_score)
+
+                    alpha = max(alpha, best_score)
+                    if beta <= alpha:
+                        print(f"Pruning branch")
+                        # Prune the branch
+                        break
             return best_score
         else:
             best_score = float('inf')
             for col in range(temp_game_board.cols):
                 row = self._find_lowest_empty_row(temp_game_board, col)
                 if row is not None:
-                    # noinspection PyTypeChecker
                     board[row][col] = MoveRead(
                         id=str(uuid4()),
                         game_id=str(uuid4()),
@@ -239,7 +245,13 @@ class ConnectFour(MyGame):
                         col=col,
                         timestamp=datetime.now(UTC)
                     )
-                    score = self.minimax(board, depth + 1, True)
+                    score = self.minimax(board, depth + 1, True, alpha, beta)
                     board[row][col] = None
                     best_score = min(score, best_score)
+
+                    beta = min(beta, best_score)
+                    if beta <= alpha:
+                        print(f"Pruning branch")
+                        # Prune the branch
+                        break
             return best_score
